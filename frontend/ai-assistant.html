@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Farmer Advisory | Govt of Manipur</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark bg-success">
+  <div class="container-fluid">
+    <span class="navbar-brand">
+      Government of Manipur – Farmer AI Advisory
+    </span>
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <h4>AI‑Based Farmer Assistance System</h4>
+  <p class="text-muted" id="subtitle">
+    This AI assistant provides information based on official government documents.
+  </p>
+
+  <!-- LANGUAGE SELECT -->
+  <div class="mb-3">
+    <label class="form-label fw-bold">Select Language</label>
+    <select id="language" class="form-select w-25" onchange="updateStaticText()">
+      <option value="en-IN">English</option>
+      <option value="mni-IN">Manipuri</option>
+    </select>
+  </div>
+  <!-- FARMER PROFILE -->
+<div class="mt-3 p-3 bg-white border rounded">
+  <h6 class="fw-bold" id="profile-label">Farmer Profile (Optional)</h6>
+
+  <div class="row">
+    <div class="col-md-4">
+      <label class="form-label">Farmer Type</label>
+      <select id="farmerType" class="form-select">
+        <option value="">Select</option>
+        <option value="Small Farmer">Small Farmer</option>
+        <option value="Marginal Farmer">Marginal Farmer</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Crop</label>
+      <select id="crop" class="form-select">
+        <option value="">Select</option>
+        <option value="Paddy">Paddy</option>
+        <option value="Maize">Maize</option>
+        <option value="Horticulture">Horticulture</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Season</label>
+      <select id="season" class="form-select">
+        <option value="">Select</option>
+        <option value="Kharif">Kharif</option>
+        <option value="Rabi">Rabi</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+
+  <!-- QUESTION INPUT -->
+  <textarea id="question" class="form-control" rows="4"
+    placeholder="Enter your question (e.g. crop insurance schemes)..."></textarea>
+
+  <!-- BUTTONS -->
+  <div class="mt-3">
+    <button class="btn btn-success" onclick="ask()">Get Advisory</button>
+    <button class="btn btn-secondary ms-2" onclick="startVoice()"> Speak</button>
+    <button class="btn btn-outline-success ms-2" onclick="speakAnswer()"> Listen</button>
+  </div>
+
+  <!-- ANSWER -->
+  <div class="mt-4 p-4 bg-white border rounded" id="answer"></div>
+
+  <!-- SOURCES -->
+  <div class="mt-3 p-3 border rounded bg-light" id="sourcesBox" style="display:none;">
+    <h6 class="fw-bold text-success" id="sources-title">
+       Information Sources
+    </h6>
+    <ul id="sourcesList" class="mb-0"></ul>
+  </div>
+<!-- FEEDBACK SECTION -->
+<div class="mt-4 p-3 bg-white border rounded" id="feedbackBox" style="display:none;">
+  <h6 class="fw-bold text-success">Was this advisory helpful?</h6>
+
+  <!-- STAR RATING -->
+  <div class="mb-2">
+    <span onclick="setRating(1)">⭐</span>
+    <span onclick="setRating(2)">⭐</span>
+    <span onclick="setRating(3)">⭐</span>
+    <span onclick="setRating(4)">⭐</span>
+    <span onclick="setRating(5)">⭐</span>
+    <span id="ratingText" class="ms-2 text-muted"></span>
+  </div>
+
+  <!-- YES / NO -->
+  <div class="mb-2">
+    <button class="btn btn-sm btn-outline-success" onclick="setHelpful(true)">Yes</button>
+    <button class="btn btn-sm btn-outline-danger ms-2" onclick="setHelpful(false)">No</button>
+  </div>
+
+  <!-- OPTIONAL COMMENT -->
+  <textarea id="feedbackText" class="form-control mt-2"
+    rows="2" placeholder="Optional feedback (e.g. need clearer subsidy details)"></textarea>
+
+  <button class="btn btn-success btn-sm mt-3" onclick="submitFeedback()">
+    Submit Feedback
+  </button>
+
+  <div class="text-success mt-2" id="feedbackStatus"></div>
+</div>
+
+  <!-- DISCLAIMER -->
+  <div class="mt-4 p-3 border rounded bg-warning-subtle">
+    <small id="disclaimer-text">
+      ⚠ This advisory is AI‑generated using official documents.
+      Please verify with local agriculture officers before taking action.
+    </small>
+  </div>
+
+</div>
+
+<script>
+
+let selectedRating = 0;
+let helpfulValue = null;
+
+function setRating(rating) {
+  selectedRating = rating;
+  document.getElementById("ratingText").innerText =
+    `Rating: ${rating}/5`;
+}
+
+function setHelpful(val) {
+  helpfulValue = val;
+}
+
+function submitFeedback() {
+  document.getElementById("feedbackStatus").innerText =
+    "Thank you! Your feedback has been recorded.";
+
+  // For demo / future backend use
+  console.log({
+    rating: selectedRating,
+    helpful: helpfulValue,
+    comment: document.getElementById("feedbackText").value
+  });
+}
+
+
+/* =========================
+   MAIN AI QUERY
+========================= */
+
+async function ask() {
+  const answerDiv = document.getElementById("answer");
+  answerDiv.innerHTML = "Processing request...";
+
+  const questionText = document.getElementById("question").value.trim();
+  if (!questionText) {
+    answerDiv.innerHTML = " Please enter a question.";
+    return;
+  }
+
+  const farmerType = document.getElementById("farmerType")?.value || "";
+  const crop = document.getElementById("crop")?.value || "";
+  const season = document.getElementById("season")?.value || "";
+  const lang = document.getElementById("language").value;
+
+  let enrichedQuestion = questionText;
+  if (farmerType || crop || season) {
+    enrichedQuestion =
+      `Farmer Profile: ${farmerType}, Crop: ${crop}, Season: ${season}. ` +
+      `Question: ${questionText}`;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: enrichedQuestion,
+        region: "Manipur",
+        domain: "Agriculture"
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error("Server returned error " + res.status);
+    }
+
+    const data = await res.json();
+
+    let finalAnswer = data.answer || "No response received.";
+
+    if (lang === "mni-IN") {
+      finalAnswer = await translateToManipuri(finalAnswer);
+    }
+
+    answerDiv.innerHTML = `
+      <div class="chat-bubble">
+        <strong>AI Advisory</strong><br><br>
+        ${formatAnswer(finalAnswer)}
+        <hr>
+        <small><strong>Sources:</strong> ${data.sources?.join(", ") || "N/A"}</small>
+      </div>
+    `;
+  } catch (error) {
+    console.error(error);
+    answerDiv.innerHTML = `
+       Unable to fetch advisory.<br>
+      <small>Please ensure the server is running.</small>
+    `;
+    document.getElementById("feedbackBox").style.display = "block";
+
+  }
+}
+
+/* Beautify text for readability */
+function formatAnswer(text) {
+  return text
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .map(line => `• ${line}`)
+    .join("<br>");
+}
+
+
+
+/* =========================
+   ANSWER FORMATTING
+========================= */
+function formatAnswer(text) {
+  const lines = text.split(". ");
+  let html = "<ul>";
+  lines.forEach(line => {
+    if (line.trim().length > 15) {
+      html += `<li>${line.trim()}.</li>`;
+    }
+  });
+  html += "</ul>";
+  return html;
+}
+
+/* =========================
+   SOURCES DISPLAY (11B)
+========================= */
+function showSources(sources) {
+  const box = document.getElementById("sourcesBox");
+  const list = document.getElementById("sourcesList");
+  list.innerHTML = "";
+
+  if (!sources || sources.length === 0) {
+    box.style.display = "none";
+    return;
+  }
+
+  sources.forEach(src => {
+    const li = document.createElement("li");
+    li.innerText = src.replace(/_/g, " ").replace(".pdf", "");
+    list.appendChild(li);
+  });
+
+  box.style.display = "block";
+}
+
+/* =========================
+   TRANSLATION (EN → MANIPURI)
+========================= */
+async function translateToManipuri(text) {
+  const url =
+    "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=mni-Mtei&dt=t&q=" +
+    encodeURIComponent(text);
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    let translated = "";
+    data[0].forEach(item => translated += item[0]);
+    return translated;
+  } catch {
+    return "ꯃꯅꯤꯄꯨꯔꯤ ꯃꯍꯥꯏ ꯑꯃ ꯅꯣꯡꯗꯣꯛꯄ ꯌꯥꯗꯦ";
+  }
+}
+
+/* =========================
+   VOICE INPUT
+========================= */
+function startVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Speech recognition not supported in this browser");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = document.getElementById("language").value;
+  recognition.start();
+
+  recognition.onresult = function(event) {
+    document.getElementById("question").value =
+      event.results[0][0].transcript;
+  };
+}
+
+/* =========================
+   VOICE OUTPUT (FIXED)
+========================= */
+function speakAnswer() {
+  const answerText =
+    document.getElementById("answer").innerText;
+
+  if (!answerText) return;
+
+  speechSynthesis.cancel(); // important fix
+
+  const utterance = new SpeechSynthesisUtterance(answerText);
+  utterance.lang = document.getElementById("language").value;
+
+  speechSynthesis.speak(utterance);
+}
+
+/* =========================
+   STATIC TEXT LANGUAGE SWITCH
+========================= */
+function updateStaticText() {
+  const lang = document.getElementById("language").value;
+
+  if (lang === "mni-IN") {
+    document.getElementById("subtitle").innerText =
+      "ꯑꯁꯤ ꯑꯥꯏ ꯁꯤꯁꯇꯦꯃ ꯑꯁꯤ ꯁꯔꯀꯥꯔꯤ ꯗꯣꯀ꯭ꯌꯨꯃꯦꯟꯇ ꯑꯗꯨꯗꯥ ꯌꯥꯎꯅꯥ ꯂꯧꯁꯤ";
+
+    document.getElementById("sources-title").innerText =
+      "📄 ꯏꯟꯐꯣꯔꯃꯦꯁꯟ ꯁꯣꯔꯁꯁꯤ";
+
+    document.getElementById("disclaimer-text").innerText =
+      "⚠ ꯑꯁꯤ ꯑꯥꯏ ꯉꯥꯡꯕ ꯑꯁꯤ ꯁꯔꯀꯥꯔꯤ ꯗꯣꯀ꯭ꯌꯨꯃꯦꯟꯇ ꯑꯗꯨꯗꯥ ꯌꯥꯎꯅꯥ ꯂꯧꯁꯤ꯫ ꯂꯣꯀꯦꯜ ꯑꯒ꯭ꯔꯤꯀꯜꯆꯔ ꯑꯣꯐꯤꯁꯔ ꯑꯗꯨꯗꯥ ꯈꯪꯗꯣꯛꯄ ꯆꯤꯡꯕꯤꯌꯨ";
+  } else {
+    document.getElementById("subtitle").innerText =
+      "This AI assistant provides information based on official government documents.";
+
+    document.getElementById("sources-title").innerText =
+      "📄 Information Sources";
+
+    document.getElementById("disclaimer-text").innerText =
+      "⚠ This advisory is AI‑generated using official documents. Please verify with local agriculture officers before taking action.";
+  }
+}
+</script>
+
+</body>
+</html>
+

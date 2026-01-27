@@ -1,0 +1,44 @@
+body {
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+h3, h5 {
+    color: #0b5ed7;
+}
+
+.card {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+textarea {
+    resize: none;
+}
+
+footer {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* AI Answer Styling */
+#answerBox ul li {
+    background-color: #ffffff;
+    border-left: 4px solid #198754;
+}
+
+/* Button consistency */
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+}
+

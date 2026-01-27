@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+venv/
+.env
+
+# Vector DB (optional – can be recreated)
+chroma_db/
+
+# OS
+.DS_Store
+
