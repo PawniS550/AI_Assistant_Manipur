@@ -7,28 +7,31 @@ The system has a frontend web interface and a backend AI API that provides agric
 
 ## Project Structure
 
+## Project Structure
+
+```text
 AI_Assistant_Manipur/
-│
 ├── backend/
-│ ├── api.py
-│ ├── query.py
-│ ├── ingest.py
-│ ├── data/
-│ │ └── documents/ # Government PDFs
-│ ├── chroma_db/ # Vector database (auto‑generated)
-│ └── venv/ # Python virtual environment
-│ └── requirements.txt
+│   ├── api.py
+│   ├── query.py
+│   ├── ingest.py
+│   ├── requirements.txt
+│   ├── data/
+│   │   └── documents/        # Government PDFs
+│   ├── chroma_db/            # Vector database (auto-generated)
+│   └── venv/                 # Python virtual environment
 │
 ├── frontend/
-│ ├── index.html
-│ ├── ai-assistant.html
-│ ├── advisory.html
-│ ├── schemes.html
-│ ├── app.js
-│ ├── style.css
-│ └── assets/
+│   ├── index.html
+│   ├── ai-assistant.html
+│   ├── advisory.html
+│   ├── schemes.html
+│   ├── app.js
+│   ├── style.css
+│   └── assets/
 │
 └── README.md
+
 
 ## Run Instructions
 
