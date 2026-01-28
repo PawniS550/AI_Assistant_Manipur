@@ -7,8 +7,6 @@ The system has a frontend web interface and a backend AI API that provides agric
 
 ## Project Structure
 
-## Project Structure
-
 ```text
 AI_Assistant_Manipur/
 ├── backend/
