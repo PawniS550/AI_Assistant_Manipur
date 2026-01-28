@@ -29,7 +29,8 @@ AI_Assistant_Manipur/
 │   └── assets/
 │
 └── README.md
-
+```
+--
 
 ## Run Instructions
 
